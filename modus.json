@@ -1,0 +1,51 @@
+{
+  "$schema": "https://schema.hypermode.com/modus.json",
+  "endpoints": {
+    "default": {
+      "type": "graphql",
+      "path": "/graphql",
+      "auth": "bearer-token"
+    }
+  },
+  "models": {
+    "text-generator": {
+      "sourceModel": "gemini-1.5-flash",
+      "connection": "gemini",
+      "path": "v1beta/openai/chat/completions"
+    },
+    "embeddings": {
+      "sourceModel": "text-embedding-004",
+      "connection": "gemini",
+      "path": "v1beta/openai/embeddings"
+    },
+    "section-generator": {
+      "sourceModel": "meta-llama/Meta-Llama-3.1-8B-Instruct",
+      "provider": "hugging-face",
+      "connection": "hypermode"
+    }
+  },
+  "connections": {
+    "gemini": {
+      "type": "http",
+      "baseUrl": "https://generativelanguage.googleapis.com/",
+      "headers": {
+        "Authorization": "Bearer {{API_KEY}}"
+      }
+    },
+    "postgres": {
+      "type": "postgresql",
+      "connString": "postgresql://{{PG_USERNAME}}:{{PG_PASSWORD}}@db.livngxmszipxasqoulsu.supabase.co:5432/postgres"
+    },
+    "dgraph": {
+      "type": "dgraph",
+      "grpcTarget": "blue-surf-1350215.grpc.us-east-1.aws.cloud.dgraph.io:443",
+      "key": "{{DG_API_KEY}}"
+    },
+    "neo4j": {
+      "type": "neo4j",
+      "dbUri": "neo4j+s://5372ca8e.databases.neo4j.io",
+      "username": "neo4j",
+      "password": "{{PASSWORD}}"
+    }
+  }
+}

@@ -12,7 +12,7 @@ import (
 	"github.com/hypermodeinc/modus/sdk/go/pkg/models/openai"
 )
 
-const modelName = "text-generator"
+const modelName = "section-generator"
 
 // GenerateText processes PubMed-style articles to extract entities and relationships
 func GenerateText(articleText string) (string, error) {
@@ -69,7 +69,7 @@ func ChunkingText(
 	chunkOverlap int,
 	preserveParagraphs bool,
 	preserveSentences bool,
-	sectionHeaders []string,
+	// sectionHeaders []string,
 ) (string, error) {
 	// Validate parameters before passing to the chunker
 	if maxChunkSize <= 0 || minChunkSize <= 0 {
@@ -86,7 +86,7 @@ func ChunkingText(
 		ChunkOverlap:       chunkOverlap,
 		PreserveParagraphs: preserveParagraphs,
 		PreserveSentences:  preserveSentences,
-		SectionHeaders:     sectionHeaders,
+		// SectionHeaders:     sectionHeaders,
 	}
 
 	// Initialize the Chunker with the provided configuration

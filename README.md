@@ -1,143 +1,177 @@
-I want you to enhance the schema selection algorithm
+# SynthesisAI Documentation
 
-but apart from that, i even want this to be more sophisticated... here is how an llm graph builder works
+## Introduction
 
-The LLM Graph Builder follows the process you learned earlier in the course:
-Gather the data
-Chunk the data, creating something like langchain's CharacterTextSPlit or recursiveCHaracter text split, but I wnat you to omplement something more sophisticated for this use case
-Vectorize the data, this is so that RAG can be performed later on on the chunked piece of data
-Pass the data to an LLM to extract nodes and relationships
-Use the output to generate the graph
-here is a function to perform text embedding with the modus sdk
+SynthesisAI is an advanced research synthesis platform that combines the power of Large Language Models (LLMs) and Knowledge Graphs to revolutionize the research process. By leveraging artificial intelligence, the platform transforms how researchers interact with academic literature, enabling efficient analysis, synthesis, and generation of research insights.
 
-package main
-import (
-	"github.com/hypermodeinc/modus/sdk/go/pkg/models"
-	"github.com/hypermodeinc/modus/sdk/go/pkg/models/openai"
-)
-func GetEmbeddingsForTextWithOpenAI(text string) ([]float32, error) {
-	results, err := GetEmbeddingsForTextsWithOpenAI(text)
-	if err != nil {
-		return nil, err
-	}
-	return results[0], nil
-}
-func GetEmbeddingsForTextsWithOpenAI(texts ...string) ([][]float32, error) {
-	model, err := models.GetModel[openai.EmbeddingsModel]("openai-embeddings")
-	if err != nil {
-		return nil, err
-	}
-	input, err := model.CreateInput(texts)
-	if err != nil {
-		return nil, err
-	}
-	output, err := model.Invoke(input)
-	if err != nil {
-		return nil, err
-	}
-	results := make([][]float32, len(output.Data))
-	for i, d := range output.Data {
-		results[i] = d.Embedding
-	}
-	return results, nil
-}
-And this one is for vector operations
+Whether starting with a single PubMed paper, a novel research idea, or an uploaded document, SynthesisAI provides comprehensive research analysis and synthesis capabilities. The system excels at generating systematic reports and guiding users through systematic reviews using Graph Retrieval Augmented Generation (RAG) technology.
 
-/*
- * This example is part of the Modus project, licensed under the Apache License 2.0.
- * You may modify and use this example in accordance with the license.
- * See the LICENSE file that accompanied this code for further details.
- */
-package main
-import (
-	"github.com/hypermodeinc/modus/sdk/go/pkg/vectors"
-)
-func Add(a, b []float64) []float64 {
-	return vectors.Add(a, b)
-}
-func AddInPlace(a, b []float64) []float64 {
-	vectors.AddInPlace(a, b)
-	return a
-}
-func Subtract(a, b []float64) []float64 {
-	return vectors.Subtract(a, b)
-}
-func SubtractInPlace(a, b []float64) []float64 {
-	vectors.SubtractInPlace(a, b)
-	return a
-}
-func AddNumber(a []float64, b float64) []float64 {
-	return vectors.AddNumber(a, b)
-}
-func AddNumberInPlace(a []float64, b float64) []float64 {
-	vectors.AddNumberInPlace(a, b)
-	return a
-}
-func SubtractNumber(a []float64, b float64) []float64 {
-	return vectors.SubtractNumber(a, b)
-}
-func SubtractNumberInPlace(a []float64, b float64) []float64 {
-	vectors.SubtractNumberInPlace(a, b)
-	return a
-}
-func MultiplyNumber(a []float64, b float64) []float64 {
-	return vectors.MultiplyNumber(a, b)
-}
-func MultiplyNumberInPlace(a []float64, b float64) []float64 {
-	vectors.MultiplyNumberInPlace(a, b)
-	return a
-}
-func DivideNumber(a []float64, b float64) []float64 {
-	return vectors.DivideNumber(a, b)
-}
-func DivideNumberInPlace(a []float64, b float64) []float64 {
-	vectors.DivideNumberInPlace(a, b)
-	return a
-}
-func Dot(a, b []float64) float64 {
-	return vectors.Dot(a, b)
-}
-func Magnitude(a []float64) float64 {
-	return vectors.Magnitude(a)
-}
-func Normalize(a []float64) []float64 {
-	return vectors.Normalize(a)
-}
-func Sum(a []float64) float64 {
-	return vectors.Sum(a)
-}
-func Product(a []float64) float64 {
-	return vectors.Product(a)
-}
-func Mean(a []float64) float64 {
-	return vectors.Mean(a)
-}
-func Min(a []float64) float64 {
-	return vectors.Min(a)
-}
-func Max(a []float64) float64 {
-	return vectors.Max(a)
-}
-func Abs(a []float64) []float64 {
-	return vectors.Abs(a)
-}
-func AbsInPlace(a []float64) []float64 {
-	vectors.AbsInPlace(a)
-	return a
-}
-func EuclidianDistance(a, b []float64) float64 {
-	return vectors.EuclidianDistance(a, b)
-}
+## System Architecture
 
-can you help me with this?
+SynthesisAI employs a sophisticated multi-layer architecture designed to process, analyze, and synthesize research content effectively. Let's explore each layer in detail:
 
+### 1. Data Retrieval Layer
 
+The initial layer focuses on intelligent data acquisition from research databases. Key features include:
 
+- **Intelligent Search Processing**: Utilizes LLM technology to generate precise MeSH (Medical Subject Headings) terms from user inputs
+- **Database Integration**: Direct integration with PubMed and other research databases
+- **Smart Query Generation**: Converts user research interests into optimized database queries
+- **Adaptive Search**: Adjusts search parameters based on initial results and user feedback
 
-package main import ( "strings" "github.com/hypermodeinc/modus/sdk/go/pkg/models" "github.com/hypermodeinc/modus/sdk/go/pkg/models/openai" ) // this model name should match the one defined in the modus.json manifest file const modelName = "text-generator" func GenerateText(instruction, prompt string) (string, error) { model, err := models.GetModel[openai.ChatModel](modelName) if err != nil { return "", err } input, err := model.CreateInput( openai.NewSystemMessage(instruction), openai.NewUserMessage(prompt), ) if err != nil { return "", err } // this is one of many optional parameters available for the OpenAI chat interface input.Temperature = 0.7 output, err := model.Invoke(input) if err != nil { return "", err } return strings.TrimSpace(output.Choices[0].Message.Content), nil } Can you do this in go, make the system instruction something to be an advanced dtat sciientist who can model information into graphs and ask it to model a piece of information i want into a schema for a graph... I want you to optimised the way you write the prompt in that we are dealing with scientific articles here such as those that we find on piubmed and we wnat it to extract relationships and entities from there... can you go ahead and hel- me with this?
+### 2. Text Processing Layer
 
-Add functionality for processing multiple papers in batch?
-Include specific parsing for different types of biomedical relationships?
-Add validation for the output format?
-Create a more specific schema for certain types of studies?
-Yes do all these things, but do not include a main function, all i want in the end is a dunction like GenerateGraphRelationship with all these things that you have said... i will also appreciate if you have like a multiple schemas for the graph that will fit most use cases of scientific paper publications which the model will check for to see whcih schema he wants to go for to generate the text for and then go on to generate this based on the chosen schema... make this schema tobust as much as possible so that we can  extract as much relationship as possible from here
+This layer implements a sophisticated three-tier chunking system for optimal text processing:
+
+#### Section-Based Chunking
+- Identifies common patterns within research papers
+- Segments content based on standard academic paper structures
+- Preserves logical section boundaries and relationships
+
+#### LLM-Based Chunking
+- Activates when predetermined patterns aren't detected
+- Uses artificial intelligence to identify logical break points
+- Ensures coherent content segmentation regardless of paper structure
+
+#### Semantic Chunking
+- Employs Natural Language Processing to detect section borders
+- Maintains semantic consistency within chunks
+- Implements overlap between chunks to preserve context
+
+### 3. Embedding and Graph Generation Layer
+
+This layer transforms processed text into a rich, interconnected knowledge structure:
+
+#### Text Embedding
+- Utilizes Google's text-embedding-004 model
+- Converts text chunks into high-dimensional vector representations
+- Enables semantic similarity comparisons
+
+#### Graph Generation
+- Employs LLM-powered relationship detection
+- Creates edges between related content chunks
+- Builds a comprehensive knowledge graph in Dgraph
+- Preserves semantic relationships between different research components
+
+### 4. RAG and Agentic Systems
+
+The platform's advanced generation and analysis capabilities are powered by:
+
+#### Retrieval Augmented Generation (RAG)
+- Leverages the graph database for context-aware generation
+- Enhances output quality with relevant retrieved information
+- Ensures factual accuracy in generated content
+
+#### Agentic System Capabilities
+- Parallel report section generation
+- Comparative analysis across multiple research papers
+- Automatic MeSH keyword generation
+- Data extraction and synthesis
+- Research highlight generation
+
+## Technical Implementation
+
+### Core Technologies
+
+1. **Modus Framework**
+   - Primary framework for API development
+   - Provides database connection management
+   - Implements caching through collections
+   - Handles model plugin integration
+   - Auto-generates GraphQL schema
+
+2. **Language Models**
+   - Meta Llama 3.1 (via Hypermode): Text generation and relationship extraction
+   - Google Gemini: Text embeddings and complex writing tasks
+   - Model-specific optimizations for different tasks
+
+3. **Database Infrastructure**
+   - Dgraph: Graph database for knowledge storage
+   - Postgres (Supabase): Relational data storage
+   - Modus Collections: Caching layer for model responses
+
+4. **Frontend Development**
+   - Next.js framework
+   - Responsive user interface
+   - Real-time result visualization
+
+### Key Features
+
+1. **Intelligent Research Processing**
+   - Automated MeSH term generation
+   - Multi-source data integration
+   - Adaptive chunking strategies
+
+2. **Advanced Analysis Capabilities**
+   - Cross-paper comparative analysis
+   - Systematic review guidance
+   - Research intersection detection
+
+3. **Efficient Content Generation**
+   - Parallel section processing
+   - Context-aware writing
+   - Fact-checked outputs
+
+## System Workflow
+
+1. **Input Processing**
+   - User submits research query/paper/idea
+   - System generates appropriate MeSH terms
+   - Initial database queries are formed
+
+2. **Content Processing**
+   - Retrieved content undergoes multi-level chunking
+   - Metadata extraction and enhancement
+   - Chunk overlap optimization
+
+3. **Knowledge Graph Creation**
+   - Text embedding generation
+   - Relationship detection and graph construction
+   - Edge weight calculation and optimization
+
+4. **Content Generation**
+   - RAG-enhanced text generation
+   - Agent-based report composition
+   - Quality assurance and fact-checking
+
+## Performance Optimization
+
+The system implements several optimization strategies:
+
+1. **Caching**
+   - Model response caching via Modus Collections
+   - Efficient retrieval of frequently accessed data
+   - Reduced latency for common queries
+
+2. **Parallel Processing**
+   - Concurrent section generation
+   - Distributed embedding computation
+   - Efficient graph updates
+
+3. **Smart Retrieval**
+   - Context-aware RAG implementation
+   - Optimized graph traversal
+   - Efficient chunk selection
+
+## Future Developments
+
+Potential areas for system enhancement include:
+
+1. **Enhanced Model Integration**
+   - Support for additional LLM architectures
+   - Improved embedding techniques
+   - Advanced relationship detection
+
+2. **Extended Database Support**
+   - Integration with additional research databases
+   - Enhanced cross-database search capabilities
+   - Improved metadata handling
+
+3. **Advanced Analysis Features**
+   - Enhanced comparative analysis tools
+   - Improved systematic review capabilities
+   - Extended visualization options
+
+## Conclusion
+
+SynthesisAI represents a significant advancement in research synthesis technology, combining cutting-edge AI capabilities with sophisticated knowledge graph implementation. Its layered architecture and intelligent processing capabilities make it a powerful tool for researchers and academics, streamlining the research process while maintaining high standards of accuracy and comprehensiveness.

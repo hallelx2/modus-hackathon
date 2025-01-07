@@ -36,10 +36,10 @@
       "type": "postgresql",
       "connString": "postgresql://{{PG_USERNAME}}:{{PG_PASSWORD}}@db.livngxmszipxasqoulsu.supabase.co:5432/postgres"
     },
-    "dgraph": {
+    "dg-conn": {
       "type": "dgraph",
       "grpcTarget": "blue-surf-1350215.grpc.us-east-1.aws.cloud.dgraph.io:443",
-      "key": "{{DG_API_KEY}}"
+      "key": "{{DGRAPH_API_KEY}}"
     },
     "neo4j": {
       "type": "neo4j",

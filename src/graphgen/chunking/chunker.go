@@ -17,7 +17,7 @@ type ChunkingConfig struct {
 	ChunkOverlap       int      `json:"chunk_overlap"`
 	PreserveParagraphs bool     `json:"preserve_paragraphs"`
 	PreserveSentences  bool     `json:"preserve_sentences"`
-	SectionHeaders     []string `json:"section_headers"`
+	// SectionHeaders     []string `json:"section_headers"`
 }
 
 // Chunker is the main struct for text chunking

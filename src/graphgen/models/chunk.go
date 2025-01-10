@@ -4,6 +4,34 @@ import (
 	"time"
 )
 
+type MedlineArticleMetadata struct {
+	PMID             string
+	Title            string
+	Authors          []Author
+	MeshTerms        []string
+	JournalInfo      JournalInfo
+	PublicationTypes []string
+	Language         string
+	DateAdded        string
+	DOI              string
+	PubMedURL        string // Added for convenience
+}
+
+type Author struct {
+	FullName    string
+	LastName    string
+	Affiliation string
+}
+
+type JournalInfo struct {
+	Abbreviation string
+	FullTitle    string
+	Volume       string
+	Issue        string
+	Pages        string
+	Date         string
+}
+
 // ChunkMetadata contains metadata about a text chunk, including information
 // about its position in the document, associated citations, keywords, entity types,
 // timestamp of extraction, and confidence score. This metadata helps in identifying
@@ -40,6 +68,9 @@ type ChunkMetadata struct {
 	// Confidence is the model's confidence score in the accuracy of the chunk's extraction.
 	// This score can be used to assess the reliability of the extracted chunk.
 	Confidence float64 `json:"confidence"`
+
+	// Metadata associated with the abstract content of the chunk.
+	Meddata MedlineArticleMetadata `json:"meddata"`
 }
 
 // TextChunk represents a chunk of text extracted from a larger document or corpus.
@@ -71,4 +102,3 @@ type TextChunk struct {
 	// and understanding the interactions between entities.
 	Relations []Relationship `json:"relations"`
 }
-

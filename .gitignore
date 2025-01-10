@@ -13,3 +13,5 @@ __debug_bin*
 *_generated.go
 *.generated.go
 .env.dev.local
+
+src/graphgen/

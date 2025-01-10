@@ -89,3 +89,21 @@ func (e *Embedder) GetEmbeddings(ctx context.Context, texts ...string) ([]float3
 
 	return output.Data[0].Embedding, nil
 }
+
+
+
+// EmbedTextChunks processes a list of TextChunks and embeds their content
+func (e *Embedder) EmbedTextChunks(ctx context.Context, chunks []graphgenModels.TextChunk) ([]graphgenModels.TextChunk, error) {
+	for i, chunk := range chunks {
+		// Embed the text content of the chunk
+		embedding, err := e.EmbedText(ctx, chunk.Content)
+		if err != nil {
+			return nil, fmt.Errorf("failed to embed text for chunk ID %s: %w", chunk.ID, err)
+		}
+
+		// Save the embedding into the chunk
+		chunks[i].Embedding = embedding
+	}
+
+	return chunks, nil
+}

@@ -3,10 +3,27 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"my-modus-app/graphgen/chunking"
+
+	// "my-modus-app/graphgen/knowledge"
+	funcModels "my-modus-app/graphgen/models"
+	"my-modus-app/graphgen/processing"
 
 	// graphgenModels "my-modus-app/graphgen/models"
 	"strings"
+
+	"my-modus-app/graphgen/knowledge"
+
+	"github.com/hypermodeinc/modus/sdk/go/pkg/http"
+
+	"my-modus-app/src/graph"
+	llmtools "my-modus-app/src/llmTools"
+
+	// "my-modus-app/src/schemas"
+
+	// "my-modus-app/src/schemas"
+	"my-modus-app/src/utils"
 
 	"github.com/hypermodeinc/modus/sdk/go/pkg/models"
 	"github.com/hypermodeinc/modus/sdk/go/pkg/models/openai"
@@ -61,119 +78,36 @@ Here is the text of a scientific article. Extract entities and relationships as 
 	return strings.TrimSpace(output.Choices[0].Message.Content), nil
 }
 
-// ChunkingText chunks the text into different categories and returns the chunks
-func ChunkingText(
-	text string,
-	maxChunkSize int,
-	minChunkSize int,
-	chunkOverlap int,
-	preserveParagraphs bool,
-	preserveSentences bool,
-	// sectionHeaders []string,
-) (string, error) {
-	// Validate parameters before passing to the chunker
-	if maxChunkSize <= 0 || minChunkSize <= 0 {
-		return "", fmt.Errorf("chunk size values must be greater than 0")
-	}
-	if chunkOverlap < 0 {
-		return "", fmt.Errorf("chunk overlap must be non-negative")
-	}
-
-	// Create a ChunkingConfig from the provided parameters
-	config := chunking.ChunkingConfig{
-		MaxChunkSize:       maxChunkSize,
-		MinChunkSize:       minChunkSize,
-		ChunkOverlap:       chunkOverlap,
-		PreserveParagraphs: preserveParagraphs,
-		PreserveSentences:  preserveSentences,
-		// SectionHeaders:     sectionHeaders,
-	}
-
-	// Initialize the Chunker with the provided configuration
-	chunker := chunking.NewChunker(config)
-
-	// Process the input text and generate chunks
-	chunks, err := chunker.ProcessText(text)
-	if err != nil {
-		return "", fmt.Errorf("error chunking text: %w", err)
-	}
-
-	// Convert chunks to JSON format
-	chunksJSON, err := json.Marshal(chunks)
-	if err != nil {
-		return "", fmt.Errorf("error serializing chunks to JSON: %w", err)
-	}
-
-	// Return the JSON string of the chunks
-	return string(chunksJSON), nil
-}
-
-func FallbackToLLMChunking(text string) (string, error) {
+func GenerateAdvancedMeSHKeywords(articleText string) (string, error) {
+	// Retrieve the OpenAI chat model
 	model, err := models.GetModel[openai.ChatModel](modelName)
 	if err != nil {
 		return "", fmt.Errorf("failed to get model: %w", err)
 	}
 
-	// Updated Instruction for LLM
+	// System instruction: Define the behavior of the model for MeSH keyword generation
 	instruction := `
-You are a scientific document parsing expert. Your task is to analyze and divide a scientific/non-scientific article into logical sections. Each section must be classified based on its title, content, and type, and then represented in a structured JSON format.
+You are a medical librarian with expert knowledge of MeSH (Medical Subject Headings) and PubMed search strategies.
+Your task is to generate advanced MeSH terms, incorporating Boolean operators (AND, OR, NOT) to create a search query that retrieves as many relevant articles as possible from PubMed.
 
-### Requirements for the Task:
-1. **Title**: Provide a clear and descriptive title of each section.
-2. **Content**: The full text of the section.
-3. **Type**: Classify the section based on its structure (e.g., Introduction, Methods, Results, Discussion, Conclusion).
+**Output format**:
+1. Group related MeSH terms with OR for inclusivity.
+2. Combine broader and narrower terms logically using AND for relevance.
+3. Use NOT only to exclude irrelevant topics.
+4. Output the terms in PubMed-ready syntax. Do not include explanations or any other text. Provide only the search query.
 
-### JSON Representation Format:
-Return the output strictly as a JSON array of objects, each representing a section of the document, in the following format:
-
-
-[
-  {
-    "Title": "<Title of the section>",
-    "Content": "<Content of the section>",
-    "Type": "<Type of the section>",
-  },
-  ...
-]
-
-**Note**
-! Do not use code tags like like json as when formatting the string in markdown... Just return the Json
-
-**Analysis Requirements:**
-1. **Context Awareness:**
-   - Consider explicit and implicit indicators of document position (e.g., headers, linguistic markers, content focus).
-   - Analyze linguistic cues like transitional phrases, topic shifts, and thematic progressions.
-   - Pay attention to changes in style, tone, or technical depth.
-
-2. **Section Identification Strategy:**
-   - Detect discourse markers (e.g., "In conclusion", "We investigated").
-   - Recognize vocabulary indicative of section types (e.g., "methods include" suggests a methodology section).
-   - Use relationships between topics and transitions to maintain logical flow.
-
-3. **Document Structure Awareness:**
-   - Use contextual clues to determine if content belongs to:
-     * **Introduction**: Sets up background, objectives, or hypotheses.
-     * **Methods**: Describes methodology and materials.
-     * **Results**: Presents findings.
-     * **Discussion**: Interprets findings in context.
-     * **Conclusion**: Synthesizes ideas, highlights implications.
-   - Adapt to variations in structure while maintaining scientific norms.
-
-4. **Section Properties to Capture:**
-   - **Title**: Clear and descriptive (e.g., "Introduction", "Results").
-   - **Type**: Both structural (e.g., "Introduction") and functional (e.g., "Background").
-
-**Output Instructions:**
-- Divide the document into 5–7 meaningful sections.
-- Ensure each section is comprehensive without losing logical flow.
-- Strictly output the JSON array as described above. Do not include any additional text or explanations.
-
-Here is the document to analyze:
+For example:
+("Diabetes Mellitus, Type 2"[MeSH] OR "Insulin Resistance"[MeSH]) AND ("Metformin"[MeSH] OR "Hypoglycemic Agents"[MeSH]) NOT "Type 1 Diabetes Mellitus"[MeSH]
 `
-	// Append the text to the instruction
-	prompt := fmt.Sprintf("Here is the document to analyze\n\n%s", text)
 
-	// Prepare input for the model
+	// User prompt: Article text
+	prompt := fmt.Sprintf(`
+Analyze the following text and generate an advanced PubMed search query using MeSH terms, Boolean operators, and the format described above:
+
+"%s"
+`, articleText)
+
+	// Prepare the model input
 	input, err := model.CreateInput(
 		openai.NewSystemMessage(instruction),
 		openai.NewUserMessage(prompt),
@@ -182,9 +116,9 @@ Here is the document to analyze:
 		return "", fmt.Errorf("failed to create model input: %w", err)
 	}
 
-	// Set model parameters
-	input.Temperature = 0.2 // Minimize randomness for strict compliance
-	input.MaxTokens = 2048  // Adjust token limit for larger outputs
+	// Configure optional parameters for the OpenAI chat model
+	input.Temperature = 0.2 // Low temperature for deterministic and precise output
+	input.MaxTokens = 1024  // Allow for longer responses with complex queries
 
 	// Invoke the model
 	output, err := model.Invoke(input)
@@ -192,19 +126,283 @@ Here is the document to analyze:
 		return "", fmt.Errorf("failed to invoke model: %w", err)
 	}
 
-	// Extract the raw JSON part from the model's response and clean it
-	cleanedOutput := output.Choices[0].Message.Content
+	// Return the PubMed search query
+	return strings.TrimSpace(output.Choices[0].Message.Content), nil
+}
 
-	// Remove backticks and extra newlines, only keep valid JSON
-	cleanedOutput = strings.TrimPrefix(cleanedOutput, "```json\n")
-	cleanedOutput = strings.TrimSuffix(cleanedOutput, "\n```")
+func FetchPubMedAccessions(meshTerms string) (string, error) {
+	// Construct the PubMed API URL
+	baseURL := "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
+	url := fmt.Sprintf("%s?db=pubmed&term=%s&retmode=json&retmax=100", baseURL, meshTerms)
 
-	// Ensure the cleaned output is a valid JSON array
-	if !strings.HasPrefix(cleanedOutput, "[") || !strings.HasSuffix(cleanedOutput, "]") {
-		return "", fmt.Errorf("invalid JSON format: %s", cleanedOutput)
+	// Perform the GET request
+	response, err := http.Fetch(url)
+	if err != nil {
+		return "", fmt.Errorf("error fetching PubMed data: %w", err)
 	}
 
-	// Return the cleaned JSON string
-	return cleanedOutput, nil
+	// Check if the response is successful
+	if !response.Ok() {
+		return "", fmt.Errorf("failed to fetch PubMed data. Status: %d %s", response.Status, response.StatusText)
+	}
 
+	// Return the response body as a string
+	return response.Text(), nil
 }
+
+// GetPubMedAccessions queries the PubMed API with MeSH terms and returns a list of PMIDs
+func GetPubMedAccessions(meshTerms string) ([]string, error) {
+	type PubMedSearchResult struct {
+		ESearchResult struct {
+			Count    string   `json:"Count"`
+			RetMax   string   `json:"RetMax"`
+			RetStart string   `json:"RetStart"`
+			IdList   []string `json:"IdList"`
+		} `json:"esearchresult"`
+	}
+	// PubMed E-utilities URL for esearch
+	baseURL := "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
+
+	requestURL := fmt.Sprintf("%s?db=pubmed&term=%s&retmode=json&retmax=100", baseURL, meshTerms)
+
+	// Make the HTTP GET request using Modus
+	response, err := http.Fetch(requestURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch data from PubMed API: %w", err)
+	}
+
+	// Parse the JSON response
+	var searchResult PubMedSearchResult
+	response.JSON(&searchResult)
+
+	// Return the list of PMIDs
+	return searchResult.ESearchResult.IdList, nil
+}
+
+func GetPubMedDetails(meshTerms string) ([]*processing.MedlineArticle, error) {
+	// PubMed E-utilities URLs
+	baseSearchURL := "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
+	baseFetchURL := "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
+
+	// Step 1: Search for IDs using esearch
+	searchURL := fmt.Sprintf("%s?db=pubmed&term=%s&retmode=json&retmax=100", baseSearchURL, meshTerms)
+	searchResponse, err := http.Fetch(searchURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to search PubMed: %w", err)
+	}
+
+	// Parse search response to get IDs
+	var searchResult funcModels.SearchResult
+	if err := json.Unmarshal([]byte(searchResponse.Text()), &searchResult); err != nil {
+		return nil, fmt.Errorf("failed to parse search results: %w", err)
+	}
+
+	if len(searchResult.ESearchResult.IdList) == 0 {
+		return nil, fmt.Errorf("no results found for the query")
+	}
+
+	// Step 2: Retrieve detailed metadata using efetch
+	ids := strings.Join(searchResult.ESearchResult.IdList, ",")
+	fetchURL := fmt.Sprintf("%s?db=pubmed&id=%s&rettype=medline&retmode=text", baseFetchURL, ids)
+	fetchResponse, err := http.Fetch(fetchURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch PubMed details: %w", err)
+	}
+
+	// Parse the MEDLINE format response
+	medlineResponse, err := processing.ParseMedlineResponse(fetchResponse.Text())
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse MEDLINE response: %w", err)
+	}
+
+	return medlineResponse.Articles, nil
+}
+
+// ChunkingText chunks the text into different categories and returns the chunks
+func ChunkingText(
+	text string,
+) (string, error) {
+	// Hardcoded parameter values
+	maxChunkSize := 500
+	minChunkSize := 100
+	chunkOverlap := 50
+	preserveParagraphs := true
+	preserveSentences := true
+
+	// Validate parameters
+	if maxChunkSize <= 0 || minChunkSize <= 0 {
+		return "", fmt.Errorf("chunk size values must be greater than 0")
+	}
+	if chunkOverlap < 0 {
+		return "", fmt.Errorf("chunk overlap must be non-negative")
+	}
+
+	// Create config for the chunker
+	config := chunking.ChunkingConfig{
+		MaxChunkSize:       maxChunkSize,
+		MinChunkSize:       minChunkSize,
+		ChunkOverlap:       chunkOverlap,
+		PreserveParagraphs: preserveParagraphs,
+		PreserveSentences:  preserveSentences,
+	}
+
+	// Initialize chunker with config
+	chunker := chunking.NewChunker(config)
+
+	// Process the text
+	chunks, err := chunker.ProcessText(
+		text,
+		maxChunkSize,
+		minChunkSize,
+		chunkOverlap,
+		preserveParagraphs,
+		preserveSentences,
+	)
+	if err != nil {
+		return "", fmt.Errorf("error chunking text: %w", err)
+	}
+
+	// Convert to JSON
+	chunksJSON, err := json.Marshal(chunks)
+	if err != nil {
+		return "", fmt.Errorf("error serializing chunks to JSON: %w", err)
+	}
+
+	return string(chunksJSON), nil
+}
+
+func DocumentProcessorModel(
+	text string,
+) (string, error) {
+	// Initialize parameters directly within the function
+	modelName := "section-generator" // Set model name to 'text-generator'
+	maxChunkSize := 1000             // Set max chunk size
+	minChunkSize := 500              // Set min chunk size
+	chunkOverlap := 50               // Set chunk overlap
+	preserveParagraphs := true       // Set preserve paragraphs flag
+	preserveSentences := true        // Set preserve sentences flag
+
+	// Call FallbackToLLMChunking to process the document and get the chunked JSON response
+	allChunks, err := chunking.FallbackToLLMChunking(
+		text,
+		maxChunkSize,
+		minChunkSize,
+		chunkOverlap,
+		preserveParagraphs,
+		preserveSentences,
+		modelName,
+	)
+	if err != nil {
+		log.Printf("Error in chunking document: %v", err)
+		return "", fmt.Errorf("failed to process document: %w", err)
+	}
+
+	// Convert chunks to JSON format
+	chunksJSON, err := json.Marshal(allChunks)
+	if err != nil {
+		return "", fmt.Errorf("error serializing chunks to JSON: %w", err)
+	}
+
+	// Return the chunked JSON string
+	return string(chunksJSON), nil
+}
+
+func ChunkBasedOnChoice(text string, useAI bool) (string, error) {
+	// Calling the function with the parameters
+	chunks, err := chunking.ChoiceChunker(text, useAI)
+
+	// Error handling
+	if err != nil {
+		return "", fmt.Errorf("failed to chunk the text: %w", err)
+	}
+
+	// Convert chunks to JSON format
+	chunksJSON, err := json.Marshal(chunks)
+	if err != nil {
+		return "", fmt.Errorf("error serializing chunks to JSON: %w", err)
+	}
+
+	return string(chunksJSON), nil
+}
+
+// GetContentSections takes a topic string and content type string, returns a list of sections to cover
+func GetContentSections(topic, contentType string) ([]string, error) {
+	// Clean inputs
+	topic = strings.TrimSpace(topic)
+	contentType = strings.ToLower(strings.TrimSpace(contentType))
+
+	// Map content type to review type
+	var reviewType llmtools.ReviewType
+	switch contentType {
+	case "quick":
+		reviewType = llmtools.QuickReview
+	case "report":
+		reviewType = llmtools.DetailedReport
+	case "systematic":
+		reviewType = llmtools.SystematicReview
+	case "technical":
+		reviewType = llmtools.TechnicalGuide
+	case "tutorial":
+		reviewType = llmtools.Tutorial
+	default:
+		reviewType = llmtools.QuickReview // Default to quick review if type not specified
+	}
+
+	// Generate sections using the llmtools package
+	sections, err := llmtools.GenerateContentSections(topic, reviewType)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate sections: %w", err)
+	}
+
+	return sections, nil
+}
+
+func GraphGenerator(meshKeyword string) (*knowledge.KnowledgeGraph, error) {
+	graph, err := knowledge.GenerateKnowledgeGraph(meshKeyword)
+
+	if err != nil {
+		return nil, fmt.Errorf("error generating the knowledge graph: %v", err)
+	}
+	return graph, nil
+}
+
+// RetrieveAndChunk retrieves PubMed details, chunks the articles, and returns a list of JSON strings.
+func RetrieveAndChunk(meshText string, useAi bool) ([]string, error) {
+	articles, err := utils.GetPubMedDetails(meshText)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving articles: %s", err)
+	}
+
+	chunks, err := graph.ChunkAndEmbedManyMedlineRetrievals(articles, useAi)
+	if err != nil {
+		return nil, fmt.Errorf("error chunking the multiple entries: %w", err)
+	}
+
+	// Prepare a list of JSON strings
+	var jsonStrings []string
+	for _, chunk := range chunks {
+		jsonData, err := json.Marshal(chunk)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling chunk to JSON: %w", err)
+		}
+		jsonStrings = append(jsonStrings, string(jsonData))
+	}
+
+	return jsonStrings, nil
+}
+
+// func GraphRetrieveAndChunk(meshText string, useAi bool) ([]*schemas.TextChunk, error) {
+// 	articles, err := utils.GetPubMedDetails(meshText)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error retrieving articles: %s", err)
+// 	}
+// 	var chunks []*schemas.TextChunk
+// 	for _, article := range articles {
+// 		chunk, err := graph.ChunkAndEmbedOneMedlineRetrieval(*article, useAi)
+// 		if err != nil {
+// 			return nil, fmt.Errorf("error genenerating the chunks and embedding")
+// 		}
+// 		chunks = append(chunks, chunk...)
+// 	}
+// 	return chunks, nil
+// }

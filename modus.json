@@ -18,6 +18,11 @@
       "connection": "gemini",
       "path": "v1beta/openai/embeddings"
     },
+    "minilm": {
+      "sourceModel": "sentence-transformers/all-MiniLM-L6-v2",
+      "provider": "hugging-face",
+      "connection": "hypermode"
+    },
     "section-generator": {
       "sourceModel": "meta-llama/Meta-Llama-3.1-8B-Instruct",
       "provider": "hugging-face",
@@ -46,6 +51,10 @@
       "dbUri": "neo4j+s://5372ca8e.databases.neo4j.io",
       "username": "neo4j",
       "password": "{{PASSWORD}}"
+    },
+    "pubmed": {
+      "type": "http",
+      "baseUrl": "https://eutils.ncbi.nlm.nih.gov/"
     }
   }
 }

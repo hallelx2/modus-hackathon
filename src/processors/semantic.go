@@ -1,8 +1,8 @@
-package chunking
+package processors
 
 import (
 	"fmt"
-	"my-modus-app/graphgen/models"
+	models "my-modus-app/src/schemas"
 	"strings"
 	"time"
 

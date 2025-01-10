@@ -1,10 +1,10 @@
-package chunking
+package processors
 
 import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"my-modus-app/graphgen/models"
+	models "my-modus-app/src/schemas"
 	"strings"
 
 	generativeModel "github.com/hypermodeinc/modus/sdk/go/pkg/models"

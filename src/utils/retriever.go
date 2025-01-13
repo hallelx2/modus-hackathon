@@ -1,6 +1,5 @@
 package utils
 
-
 import (
 	"encoding/json"
 	"fmt"
@@ -10,7 +9,6 @@ import (
 
 	"github.com/hypermodeinc/modus/sdk/go/pkg/http"
 )
-
 
 func GetPubMedDetails(meshTerms string) ([]*schemas.MedlineArticle, error) {
 	baseSearchURL := "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
@@ -47,7 +45,6 @@ func GetPubMedDetails(meshTerms string) ([]*schemas.MedlineArticle, error) {
 
 	return medlineResponse.Articles, nil
 }
-
 
 func GetPubMedAccessions(meshTerms string) ([]string, error) {
 	type PubMedSearchResult struct {

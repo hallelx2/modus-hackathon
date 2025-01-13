@@ -1,0 +1,163 @@
+Author.affiliation: string .
+Author.full_name: string @index(fulltext) .
+Author.id: string @index(hash) @upsert .
+Author.last_name: string @index(term) .
+Author.medline_metadata: [uid] @reverse .
+Chat.chats: [uid] @reverse .
+Chat.id: string @index(hash) @upsert .
+Chat.messages: [uid] @reverse .
+Chat.research: uid @reverse .
+Chat.user: uid @reverse .
+ChatMessage.ai_message: string @index(fulltext) .
+ChatMessage.chat: uid @reverse .
+ChatMessage.human_message: string @index(fulltext) .
+ChatMessage.id: string @index(hash) @upsert .
+ChunkMetadata.citations: [string] .
+ChunkMetadata.confidence: float .
+ChunkMetadata.end_index: int .
+ChunkMetadata.entity_types: [string] .
+ChunkMetadata.keywords: [string] @index(term) .
+ChunkMetadata.medline_data: uid .
+ChunkMetadata.section: string @index(term) .
+ChunkMetadata.start_index: int .
+ChunkMetadata.timestamp: datetime .
+JournalInfo.abbreviation: string .
+JournalInfo.date: datetime .
+JournalInfo.full_title: string @index(fulltext) .
+JournalInfo.issue: string .
+JournalInfo.medline_metadata: [uid] @reverse .
+JournalInfo.pages: string .
+JournalInfo.volume: string .
+MedlineArticleMetadata.authors: [uid] @reverse .
+MedlineArticleMetadata.date_added: datetime .
+MedlineArticleMetadata.doi: string @index(hash) .
+MedlineArticleMetadata.journal_info: uid .
+MedlineArticleMetadata.language: string .
+MedlineArticleMetadata.mesh_terms: [string] .
+MedlineArticleMetadata.pmid: string @index(hash) @upsert .
+MedlineArticleMetadata.publication_types: [string] .
+MedlineArticleMetadata.pubmed_url: string .
+MedlineArticleMetadata.title: string @index(fulltext) .
+Research.associated_chunks: [uid] @reverse .
+Research.description: string @index(fulltext) .
+Research.id: string @index(hash) @upsert .
+Research.pubmed_ids: [string] .
+Research.research_result: string .
+Research.research_type: string @index(term) .
+Research.title: string @index(fulltext) .
+Research.user: uid @reverse .
+TextChunk.content: string @index(fulltext) .
+TextChunk.embedding: float32vector .
+TextChunk.id: string @index(hash) @upsert .
+TextChunk.metadata: uid .
+TextChunk.relations: [uid] @reverse .
+TextChunk.score: float .
+TextChunk.user_id: string @index(hash) .
+User.chats: [uid] @reverse .
+User.created_at: datetime .
+User.email: string @index(hash) @upsert .
+User.id: string @index(hash) @upsert .
+User.name: string @index(term) .
+User.password: string .
+User.researches: [uid] @reverse .
+User.updated_at: datetime .
+dgraph.drop.op: string .
+dgraph.graphql.p_query: string @index(sha256) .
+dgraph.graphql.schema: string .
+dgraph.graphql.xid: string @index(exact) @upsert .
+type Author {
+	Author.id
+	Author.full_name
+	Author.last_name
+	Author.affiliation
+	Author.medline_metadata
+}
+type Chat {
+	Chat.id
+	Chat.user
+	Chat.research
+	Chat.messages
+}
+type ChatMessage {
+	ChatMessage.id
+	ChatMessage.chat
+	ChatMessage.human_message
+	ChatMessage.ai_message
+}
+type ChunkMetadata {
+	ChunkMetadata.start_index
+	ChunkMetadata.end_index
+	ChunkMetadata.section
+	ChunkMetadata.citations
+	ChunkMetadata.keywords
+	ChunkMetadata.entity_types
+	ChunkMetadata.timestamp
+	ChunkMetadata.confidence
+	ChunkMetadata.medline_data
+}
+type JournalInfo {
+	JournalInfo.abbreviation
+	JournalInfo.full_title
+	JournalInfo.volume
+	JournalInfo.issue
+	JournalInfo.pages
+	JournalInfo.date
+	JournalInfo.medline_metadata
+}
+type MedlineArticleMetadata {
+	MedlineArticleMetadata.pmid
+	MedlineArticleMetadata.title
+	MedlineArticleMetadata.authors
+	MedlineArticleMetadata.mesh_terms
+	MedlineArticleMetadata.journal_info
+	MedlineArticleMetadata.publication_types
+	MedlineArticleMetadata.language
+	MedlineArticleMetadata.date_added
+	MedlineArticleMetadata.doi
+	MedlineArticleMetadata.pubmed_url
+}
+type Research {
+	Research.id
+	Research.user
+	Research.research_type
+	Research.title
+	Research.description
+	Research.pubmed_ids
+	Research.associated_chunks
+	Research.research_result
+}
+type TextChunk {
+	TextChunk.id
+	TextChunk.user_id
+	TextChunk.content
+	TextChunk.embedding
+	TextChunk.metadata
+	TextChunk.score
+	TextChunk.relations
+}
+type User {
+	User.id
+	User.name
+	User.email
+	User.password
+	User.created_at
+	User.updated_at
+	User.researches
+	User.chats
+}
+type dgraph.graphql {
+	dgraph.graphql.schema
+	dgraph.graphql.xid
+}
+type dgraph.graphql.persisted_query {
+	dgraph.graphql.p_query
+}
+type dgraph.type.Group {
+
+}
+type dgraph.type.Rule {
+
+}
+type dgraph.type.User {
+
+}

@@ -1,4 +1,4 @@
-package llmtools
+package tools
 
 import (
 	"fmt"
@@ -8,9 +8,7 @@ import (
 	"github.com/hypermodeinc/modus/sdk/go/pkg/models/openai"
 )
 
-
-const modelName = "section-generator"
-
+const modelName = "text-generator"
 
 func GenerateAdvancedMeSHKeywords(articleText string) (string, error) {
 	// Retrieve the OpenAI chat model

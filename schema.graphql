@@ -1,0 +1,133 @@
+type ChunkMetadata {
+  startIndex: Int!
+  endIndex: Int!
+  section: String
+  citations: [String]
+  keywords: [String]
+  entityTypes: [String]
+  timestamp: DateTime!
+  confidence: Float!
+  medlineData: MedlineArticleMetadata!
+}
+
+type TextChunk {
+  id: ID!
+  userId: String!
+  content: String!
+  embedding: [Float]
+  metadata: ChunkMetadata!
+  score: Float
+  relations: [Relationship]
+}
+
+type Relationship {
+  sourceId: ID!
+  targetId: ID!
+  type: String!
+  properties: JSON
+  confidence: Float!
+  evidence: [String]
+}
+
+type RelationshipGroup {
+  id: ID!
+  relationships: [Relationship!]!
+  context: [TextChunk]
+  metadata: JSON
+}
+
+type Node {
+  id: ID!
+  label: String!
+  data: JSON
+}
+
+type Edge {
+  id: ID!
+  source: ID!
+  target: ID!
+  type: String!
+  properties: JSON
+  evidence: [String]
+}
+
+type Graph {
+  nodes: [Node!]!
+  edges: [Edge!]!
+}
+
+type Author {
+  fullName: String!
+  lastName: String!
+  affiliation: String
+}
+
+type JournalInfo {
+  abbreviation: String
+  fullTitle: String
+  volume: String
+  issue: String
+  pages: String
+  date: String
+}
+
+type MedlineArticleMetadata {
+  pmid: ID!
+  title: String!
+  authors: [Author]
+  meshTerms: [String]
+  journalInfo: JournalInfo
+  publicationTypes: [String]
+  language: String
+  dateAdded: String
+  doi: String
+  pubMedURL: String
+}
+
+type User @auth(
+  query: { rule: """
+    query($USER_ID: String!) {
+      queryUser(filter: { id: { eq: $USER_ID } }) {
+        id
+      }
+    }
+    """ }
+) {
+  id: ID!
+  name: String!
+  email: String! @search(by: [hash])
+  password: String! @secret
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  researches: [Research] @hasInverse(field: user)
+  chats: [Chat] @hasInverse(field: user)
+}
+
+type Research {
+  id: ID!
+  user: User!
+  researchType: String!
+  title: String!
+  description: String
+  pubmedIds: [String]
+  associatedChunks: [TextChunk]
+  researchResult: String
+  chats: [Chat] @hasInverse(field: research)
+}
+
+type Chat {
+  id: ID!
+  user: User!
+  research: Research!
+  messages: [ChatMessage] @hasInverse(field: chat)
+}
+
+type ChatMessage {
+  id: ID!
+  chat: Chat!
+  humanMessage: String!
+  aiMessage: String!
+  timestamp: DateTime!
+}
+
+# Dgraph.Authorization {"VerificationKey":"<your-jwt-secret>","Header":"Authorization","Namespace":"https://dgraph.io/jwt/claims","Algo":"HS256"}

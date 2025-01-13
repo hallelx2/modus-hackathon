@@ -87,7 +87,6 @@ func (c *Chunker) ProcessText(
 	return chunks, nil
 }
 
-
 // FallbackToLLMChunking takes in a text and parameters, processes it through LLM chunking,
 // and returns the chunked JSON string output.
 func FallbackToLLMChunking(
@@ -226,12 +225,9 @@ Here is the document to analyze:
 		allChunks = append(allChunks, chunks...)
 	}
 
-
-
 	// Return the JSON string of the chunks
 	return allChunks, nil
 }
-
 
 func ChoiceChunker(text string, use_ai bool) ([]models.TextChunk, error) {
 	// Initialize parameters directly within the function

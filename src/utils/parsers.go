@@ -1,11 +1,11 @@
 package utils
+
 import (
 	"bufio"
 	"fmt"
-	"strings"
 	"my-modus-app/src/schemas"
+	"strings"
 )
-
 
 // ParseMedlineResponse parses multiple MEDLINE format articles
 func ParseMedlineResponse(content string) (*schemas.MedlineResponse, error) {
@@ -38,8 +38,8 @@ func ParseMedlineResponse(content string) (*schemas.MedlineResponse, error) {
 func ParseMedline(content string) (*schemas.MedlineArticle, error) {
 	scanner := bufio.NewScanner(strings.NewReader(content))
 	article := &schemas.MedlineArticle{
-		Authors:     make([]schemas.Author, 0),
-		MeshTerms:   make([]string, 0),
+		Authors:          make([]schemas.Author, 0),
+		MeshTerms:        make([]string, 0),
 		PublicationTypes: make([]string, 0),
 	}
 

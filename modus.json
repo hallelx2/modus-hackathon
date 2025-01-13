@@ -39,12 +39,12 @@
     },
     "postgres": {
       "type": "postgresql",
-      "connString": "postgresql://{{PG_USERNAME}}:{{PG_PASSWORD}}@db.livngxmszipxasqoulsu.supabase.co:5432/postgres"
+      "connString": "postgresql://{{PG_USERNAME}}:{{PG_PASSWORD}}@dpg-cu1tmc9u0jms738m252g-a.oregon-postgres.render.com/synthesisai"
     },
-    "dg-conn": {
+    "dg": {
       "type": "dgraph",
-      "grpcTarget": "blue-surf-1350215.grpc.us-east-1.aws.cloud.dgraph.io:443",
-      "key": "{{DGRAPH_API_KEY}}"
+      "grpcTarget": "blue-surf-1350267.grpc.us-east-1.aws.cloud.dgraph.io:443",
+      "key": "ZTY3OGRiNzMwNzBhNjAyNDMyNmNlYzljZDc1MDI4OGY="
     },
     "neo4j": {
       "type": "neo4j",

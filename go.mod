@@ -7,8 +7,6 @@ require (
 	github.com/hypermodeinc/modus/sdk/go v0.16.0
 )
 
-require golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67 // indirect
-
 replace my-modus-app/graphgen => ./src/graphgen
 
 require (
@@ -16,5 +14,5 @@ require (
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
-	my-modus-app/graphgen v0.0.0-00010101000000-000000000000
+	golang.org/x/crypto v0.32.0
 )

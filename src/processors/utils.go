@@ -1,9 +1,9 @@
 package processors
 
 import (
+	"my-modus-app/src/schemas"
 	"regexp"
 	"strings"
-	"my-modus-app/src/schemas"
 )
 
 type TextCleaner struct {
@@ -29,7 +29,6 @@ func (tc *TextCleaner) Clean(text string) (string, error) {
 	return strings.TrimSpace(cleaned), nil
 }
 
-
 func (c *Chunker) applyOverlap(chunks []schemas.TextChunk) []schemas.TextChunk {
 	if len(chunks) == 0 || c.config.ChunkOverlap <= 0 {
 		return chunks
@@ -37,7 +36,7 @@ func (c *Chunker) applyOverlap(chunks []schemas.TextChunk) []schemas.TextChunk {
 	var result []schemas.TextChunk
 	for i, chunk := range chunks {
 		// Add the current chunk to the result
-		if i== 0 {
+		if i == 0 {
 			result = append(result, chunk)
 		} else {
 			// Add the overlap from the previous chunk
@@ -47,28 +46,27 @@ func (c *Chunker) applyOverlap(chunks []schemas.TextChunk) []schemas.TextChunk {
 
 			// Create a new chunk with overlap and current content
 			newChunk := schemas.TextChunk{
-                ID: chunk.ID,
-                Content: overlapContent + chunk.Content,
-                Metadata: schemas.ChunkMetadata{
-                    StartIndex: prevChunk.Metadata.EndIndex - overlapEnd,
-                    EndIndex: chunk.Metadata.EndIndex,
-                    Section: chunk.Metadata.Section,
-                    Timestamp: chunk.Metadata.Timestamp,
-                },
-                Embedding: chunk.Embedding,
-                Score: chunk.Score,
-                Relations: chunk.Relations,
-            }
-            result = append(result, newChunk)
+				ID:      chunk.ID,
+				Content: overlapContent + chunk.Content,
+				Metadata: schemas.ChunkMetadata{
+					StartIndex: prevChunk.Metadata.EndIndex - overlapEnd,
+					EndIndex:   chunk.Metadata.EndIndex,
+					Section:    chunk.Metadata.Section,
+					Timestamp:  chunk.Metadata.Timestamp,
+				},
+				Embedding: chunk.Embedding,
+				Score:     chunk.Score,
+				Relations: chunk.Relations,
+			}
+			result = append(result, newChunk)
 		}
 	}
 	return result
 }
 
-
 // Utility function to calculate the minimum of two integers
 func min(a, b int) int {
-	if a<b {
+	if a < b {
 		return a
 	}
 	return b

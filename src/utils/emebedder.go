@@ -5,8 +5,6 @@ import (
 	"github.com/hypermodeinc/modus/sdk/go/pkg/models/openai"
 )
 
-
-
 func GetEmbeddingsForTextsWithOpenAI(texts ...string) ([][]float32, error) {
 	model, err := models.GetModel[openai.EmbeddingsModel]("embeddings")
 	if err != nil {

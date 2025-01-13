@@ -1,0 +1,60 @@
+{
+  "$schema": "https://schema.hypermode.com/modus.json",
+  "endpoints": {
+    "default": {
+      "type": "graphql",
+      "path": "/graphql",
+      "auth": "bearer-token"
+    }
+  },
+  "models": {
+    "text-generator": {
+      "sourceModel": "gemini-1.5-flash",
+      "connection": "gemini",
+      "path": "v1beta/openai/chat/completions"
+    },
+    "embeddings": {
+      "sourceModel": "text-embedding-004",
+      "connection": "gemini",
+      "path": "v1beta/openai/embeddings"
+    },
+    "minilm": {
+      "sourceModel": "sentence-transformers/all-MiniLM-L6-v2",
+      "provider": "hugging-face",
+      "connection": "hypermode"
+    },
+    "section-generator": {
+      "sourceModel": "meta-llama/Meta-Llama-3.1-8B-Instruct",
+      "provider": "hugging-face",
+      "connection": "hypermode"
+    }
+  },
+  "connections": {
+    "gemini": {
+      "type": "http",
+      "baseUrl": "https://generativelanguage.googleapis.com/",
+      "headers": {
+        "Authorization": "Bearer {{API_KEY}}"
+      }
+    },
+    "postgres": {
+      "type": "postgresql",
+      "connString": "postgresql://{{PG_USERNAME}}:{{PG_PASSWORD}}@dpg-cu1tmc9u0jms738m252g-a.oregon-postgres.render.com/synthesisai"
+    },
+    "dg": {
+      "type": "dgraph",
+      "grpcTarget": "blue-surf-1350267.grpc.us-east-1.aws.cloud.dgraph.io:443",
+      "key": "ZTY3OGRiNzMwNzBhNjAyNDMyNmNlYzljZDc1MDI4OGY="
+    },
+    "neo4j": {
+      "type": "neo4j",
+      "dbUri": "neo4j+s://5372ca8e.databases.neo4j.io",
+      "username": "neo4j",
+      "password": "{{PASSWORD}}"
+    },
+    "pubmed": {
+      "type": "http",
+      "baseUrl": "https://eutils.ncbi.nlm.nih.gov/"
+    }
+  }
+}
